@@ -1,9 +1,14 @@
-venv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.db
-*.sqlite3
-.DS_Store
-*.log
+# Ignore videos and large data
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Ignore YOLO weights
+*.pt
+
+# Ignore Streamlit cache
+.streamlit/
+
+# Ignore YOLO output folders
+runs/
