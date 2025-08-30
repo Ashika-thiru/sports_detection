@@ -1,11 +1,10 @@
 import os
 import cv2
 import tempfile
+import numpy as np
 import torch
 import streamlit as st
 from ultralytics import YOLO
-
-
 
 # ========================
 # Load YOLO model (cached)
@@ -27,7 +26,13 @@ def process_video(video_path, model):
         if not ret:
             break
 
-        results = model(frame)  # YOLO inference
+        # ✅ Ensure frame is in correct format
+        frame = np.ascontiguousarray(frame)
+        frame = frame.astype(np.uint8)
+
+        # ✅ Use predict explicitly
+        results = model.predict(frame)
+
         annotated_frame = results[0].plot()
 
         # Convert BGR (OpenCV) → RGB (Streamlit)
@@ -39,7 +44,7 @@ def process_video(video_path, model):
 # Streamlit App Layout
 # ========================
 def main():
-    st.title("🎯 Sports Detection with YOLOv8")
+    st.title("🎯 Sports Detection ")
 
     model = load_model()
 
@@ -71,7 +76,9 @@ def main():
             if not ret:
                 break
 
-            results = model(frame)
+            frame = np.ascontiguousarray(frame)
+            frame = frame.astype(np.uint8)
+            results = model.predict(frame)
             annotated_frame = results[0].plot()
 
             stframe.image(annotated_frame, channels="BGR", use_column_width=True)
