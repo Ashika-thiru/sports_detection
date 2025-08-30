@@ -5,10 +5,7 @@ import torch
 import streamlit as st
 from ultralytics import YOLO
 
-# ========================
-# Fix for PyTorch weights_only issue
-# ========================
-torch.serialization.add_safe_globals([YOLO])
+
 
 # ========================
 # Load YOLO model (cached)
