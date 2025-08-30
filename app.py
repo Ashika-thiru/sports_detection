@@ -71,7 +71,7 @@ def process_video(video_path, model):
         out.write(annotated_frame)
 
         # Show preview in Streamlit
-        stframe.image(annotated_frame, channels="BGR", use_column_width=True)
+        stframe.image(annotated_frame, channels="BGR", use_container_width=True)
 
     cap.release()
     out.release()
@@ -152,7 +152,7 @@ def main():
             results = model.predict(frame, verbose=False)
             annotated_frame = results[0].plot()
 
-            stframe.image(annotated_frame, channels="BGR", use_column_width=True)
+            stframe.image(annotated_frame, channels="BGR", use_container_width=True)
 
         cap.release()
 
