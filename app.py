@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # ========================
 @st.cache_resource(show_spinner=False)
 def load_model():
-    return YOLO("yolov8n.pt", task="detect")  # replace with your custom model if trained
+    return YOLO("yolov8n.pt")  # replace with your trained model if needed
 
 
 # ========================
@@ -42,12 +42,8 @@ def process_video(video_path, model):
         if not ret:
             break
 
-        # Save current frame temporarily
-        tmp_path = "frame.jpg"
-        cv2.imwrite(tmp_path, frame)
-
-        # Run YOLO detection
-        results = model.predict(source=tmp_path, verbose=False)
+        # Run YOLO detection directly on frame (no tmp save)
+        results = model.predict(frame, verbose=False)
         annotated_frame = results[0].plot()
 
         # Count detections
@@ -153,10 +149,7 @@ def main():
             if not ret:
                 break
 
-            tmp_path = "frame.jpg"
-            cv2.imwrite(tmp_path, frame)
-
-            results = model.predict(source=tmp_path, verbose=False)
+            results = model.predict(frame, verbose=False)
             annotated_frame = results[0].plot()
 
             stframe.image(annotated_frame, channels="BGR", use_column_width=True)
