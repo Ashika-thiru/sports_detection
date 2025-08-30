@@ -11,7 +11,6 @@ from ultralytics import YOLO
 # ========================
 @st.cache_resource(show_spinner=False)
 def load_model():
-    # You can replace "yolov8n.pt" with your custom trained weights, e.g. "best.pt"
     return YOLO("yolov8n.pt", task="detect")
 
 # ========================
@@ -26,16 +25,22 @@ def process_video(video_path, model):
         if not ret:
             break
 
-        # ✅ Ensure frame is in correct format
-        frame = np.ascontiguousarray(frame)
-        frame = frame.astype(np.uint8)
+        # ✅ Ensure frame is valid: always 3 channels, contiguous, uint8
+        if frame is None:
+            continue
+        if len(frame.shape) == 2:  # grayscale → convert to BGR
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        elif frame.shape[2] == 4:  # RGBA → convert to BGR
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
-        # ✅ Use predict explicitly
-        results = model.predict(frame)
+        frame = np.ascontiguousarray(frame, dtype=np.uint8)
+
+        # ✅ YOLO inference
+        results = model.predict(source=frame)
 
         annotated_frame = results[0].plot()
 
-        # Convert BGR (OpenCV) → RGB (Streamlit)
+        # Show in Streamlit
         stframe.image(annotated_frame, channels="BGR", use_column_width=True)
 
     cap.release()
@@ -44,11 +49,10 @@ def process_video(video_path, model):
 # Streamlit App Layout
 # ========================
 def main():
-    st.title("🎯 Sports Detection ")
+    st.title("🎯 Sports Detection with YOLOv8")
 
     model = load_model()
 
-    # Detect if running in Streamlit Cloud
     RUNNING_IN_STREAMLIT_CLOUD = os.environ.get("STREAMLIT_RUNTIME") is not None
 
     if RUNNING_IN_STREAMLIT_CLOUD:
@@ -60,7 +64,6 @@ def main():
     if source_type == "Upload a video":
         uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
         if uploaded_file is not None:
-            # Save uploaded video to a temp file
             tfile = tempfile.NamedTemporaryFile(delete=False)
             tfile.write(uploaded_file.read())
             process_video(tfile.name, model)
@@ -69,16 +72,23 @@ def main():
     elif source_type == "Use webcam":
         st.info("Webcam mode is only available when running locally.")
         cap = cv2.VideoCapture(0)
-
         stframe = st.empty()
+
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
 
-            frame = np.ascontiguousarray(frame)
-            frame = frame.astype(np.uint8)
-            results = model.predict(frame)
+            if frame is None:
+                continue
+            if len(frame.shape) == 2:
+                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+            elif frame.shape[2] == 4:
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+
+            frame = np.ascontiguousarray(frame, dtype=np.uint8)
+
+            results = model.predict(source=frame)
             annotated_frame = results[0].plot()
 
             stframe.image(annotated_frame, channels="BGR", use_column_width=True)
